@@ -297,8 +297,36 @@ export async function getGrievances() {
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
-export async function submitGrievance(title, description, category, submittedBy) {
-    await addDoc(collection(db, "grievances"), { title, description, category, status: "pending", submittedBy, submittedAt: serverTimestamp() });
+export async function submitGrievance(title, description, category, submittedBy, targetEmployee = null) {
+    await addDoc(collection(db, "grievances"), {
+        title,
+        description,
+        category,
+        status: "pending",
+        submittedBy,
+        targetEmployee,
+        submittedAt: serverTimestamp()
+    });
+}
+
+export async function getPublicEmployees() {
+    try {
+        const q = query(collection(db, "employees"), orderBy("name", "asc"));
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                name: data.name,
+                dept: data.dept,
+                post: data.post,
+                empId: data.empId
+            };
+        });
+    } catch (error) {
+        console.error("Error fetching public employees:", error);
+        return [];
+    }
 }
 
 export async function resolveGrievance(id) {

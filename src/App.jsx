@@ -19,6 +19,7 @@ import Tasks from "./pages/Tasks";
 import JobPostings from "./pages/Recruitment/JobPostings";
 import Applications from "./pages/Recruitment/Applications";
 import Careers from "./pages/Recruitment/Careers";
+import PublicComplaint from "./pages/PublicComplaint";
 
 // Leave Management
 import LeaveTypes from "./pages/LeaveTypes";
@@ -42,6 +43,7 @@ function App() {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showCareers, setShowCareers] = useState(false);
+  const [showPublicComplaint, setShowPublicComplaint] = useState(false);
 
   useEffect(() => {
     const unsubscribe = checkUser((currentUser, userRole) => {
@@ -202,6 +204,10 @@ function App() {
     return <Careers onBack={() => setShowCareers(false)} />;
   }
 
+  if (showPublicComplaint) {
+    return <PublicComplaint onBack={() => setShowPublicComplaint(false)} />;
+  }
+
   if (!isLoggedIn) {
     return (
       <div className="min-vh-100 d-flex align-items-center justify-content-center" style={{ background: `linear-gradient(135deg, ${THEME.primary} 0%, #283593 100%)` }}>
@@ -229,6 +235,11 @@ function App() {
                     <div className="text-center mt-3">
                       <button type="button" className="btn btn-link text-decoration-none" onClick={() => setShowCareers(true)}>
                         Looking for a job? View Careers
+                      </button>
+                    </div>
+                    <div className="text-center mt-2">
+                      <button type="button" className="btn btn-sm btn-outline-danger border-0" onClick={() => setShowPublicComplaint(true)}>
+                        ⚠️ Report an Issue / Complaint
                       </button>
                     </div>
                   </form>

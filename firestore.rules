@@ -14,8 +14,10 @@ service cloud.firestore {
     }
 
     // Employees
+    // Employees
     match /employees/{docId} {
-      allow read, write: if request.auth != null;
+      allow read: if true; // Public read needed for "Complaint Against" dropdown
+      allow write: if request.auth != null;
     }
 
     // Attendance
@@ -39,8 +41,10 @@ service cloud.firestore {
     }
 
     // Grievances
+    // Grievances
     match /grievances/{docId} {
-      allow read, write: if request.auth != null;
+      allow create: if true; // Allow public to submit complaints
+      allow read, update, delete: if request.auth != null;
     }
 
     // Tasks (Fixes the "Missing Permissions" error)

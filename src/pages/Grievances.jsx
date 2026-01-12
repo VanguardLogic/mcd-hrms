@@ -1,14 +1,26 @@
 import { useState, useEffect } from "react";
-import { getGrievances, submitGrievance, resolveGrievance } from "../backend";
+import { getGrievances, submitGrievance, resolveGrievance, getPublicEmployees } from "../backend";
 
 function Grievances({ role, user }) {
     const [complaints, setComplaints] = useState([]);
     const [showForm, setShowForm] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [employees, setEmployees] = useState([]);
+    const [filterCategory, setFilterCategory] = useState("All");
 
     useEffect(() => {
         loadComplaints();
+        loadEmployees();
     }, []);
+
+    async function loadEmployees() {
+        try {
+            const data = await getPublicEmployees();
+            setEmployees(data);
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
     async function loadComplaints() {
         const data = await getGrievances();
@@ -22,9 +34,16 @@ function Grievances({ role, user }) {
         const title = e.target.title.value.trim();
         const description = e.target.description.value.trim();
         const category = e.target.category.value;
+        const targetEmpId = e.target.targetEmpId ? e.target.targetEmpId.value : null;
+
+        let targetEmployee = null;
+        if (targetEmpId) {
+            const emp = employees.find(e => e.id === targetEmpId);
+            if (emp) targetEmployee = { id: emp.id, name: emp.name, dept: emp.dept };
+        }
 
         try {
-            await submitGrievance(title, description, category, user?.email);
+            await submitGrievance(title, description, category, user?.email, targetEmployee);
             alert("Complaint submitted successfully!");
             e.target.reset();
             setShowForm(false);
@@ -63,9 +82,30 @@ function Grievances({ role, user }) {
                         <p className="text-muted small mb-0">Track and resolve employee requests transparently.</p>
                     </div>
                 </div>
-                <button className="btn btn-primary rounded-pill px-4 shadow-sm fw-medium" onClick={() => setShowForm(!showForm)}>
-                    {showForm ? "Hide Form" : "New Complaint"}
-                </button>
+                <div className="d-flex gap-2">
+                    <select
+                        className="form-select rounded-pill shadow-sm border-0"
+                        style={{ width: "200px" }}
+                        value={filterCategory}
+                        onChange={(e) => setFilterCategory(e.target.value)}
+                    >
+                        <option value="All">All Categories</option>
+                        {/* Dynamic categories or fixed list */}
+                        <option value="workplace">Workplace Issue</option>
+                        <option value="salary">Salary Problem</option>
+                        <option value="leave">Leave Related</option>
+                        <option value="harassment">Harassment</option>
+                        <option value="inter-dept">Inter-department</option>
+                        <option value="Public Complaint">Public Complaint</option>
+                        <option value="Corruption">Corruption</option>
+                        <option value="Misbehavior">Misbehavior</option>
+                        <option value="Delay">Delay</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <button className="btn btn-primary rounded-pill px-4 shadow-sm fw-medium align-self-center" onClick={() => setShowForm(!showForm)}>
+                        {showForm ? "Hide Form" : "New Complaint"}
+                    </button>
+                </div>
             </div>
 
             {/* New Complaint Form */}
@@ -88,7 +128,17 @@ function Grievances({ role, user }) {
                                         <option value="salary">Salary Problem</option>
                                         <option value="leave">Leave Related</option>
                                         <option value="harassment">Harassment</option>
+                                        <option value="inter-dept">Inter-department (Against Employee)</option>
                                         <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div className="col-12">
+                                    <label className="form-label small fw-bold text-muted text-uppercase">Against Employee (Optional)</label>
+                                    <select className="form-select rounded-3 border-0 bg-white shadow-sm" name="targetEmpId">
+                                        <option value="">Select Employee...</option>
+                                        {employees.map(emp => (
+                                            <option key={emp.id} value={emp.id}>{emp.name} ({emp.dept} - {emp.post})</option>
+                                        ))}
                                     </select>
                                 </div>
                                 <div className="col-12">
@@ -114,33 +164,40 @@ function Grievances({ role, user }) {
                     </div>
                 ) : (
                     <div className="list-group list-group-flush">
-                        {complaints.map((c) => (
-                            <div key={c.id} className="list-group-item p-4">
-                                <div className="d-flex justify-content-between align-items-start">
-                                    <div className="flex-grow-1">
-                                        <div className="d-flex align-items-center gap-2 mb-1">
-                                            <h6 className="mb-0 fw-bold">{c.title}</h6>
-                                            <span className={`badge ${getStatusColor(c.status)}`}>
-                                                {c.status}
-                                            </span>
-                                            <span className="badge bg-light text-dark border">
-                                                {c.category}
-                                            </span>
+                        {complaints
+                            .filter(c => filterCategory === "All" || c.category === filterCategory || (filterCategory === "Public Complaint" && c.title.includes("Public")))
+                            .map((c) => (
+                                <div key={c.id} className="list-group-item p-4">
+                                    <div className="d-flex justify-content-between align-items-start">
+                                        <div className="flex-grow-1">
+                                            <div className="d-flex align-items-center gap-2 mb-1">
+                                                <h6 className="mb-0 fw-bold">{c.title}</h6>
+                                                <span className={`badge ${getStatusColor(c.status)}`}>
+                                                    {c.status}
+                                                </span>
+                                                <span className="badge bg-light text-dark border">
+                                                    {c.category}
+                                                </span>
+                                            </div>
+                                            <p className="text-muted mb-2">{c.description}</p>
+                                            <div className="d-flex gap-3">
+                                                <small className="text-muted">By: {c.submittedBy}</small>
+                                                {c.status === "pending" && <small className="text-danger fw-bold">Days Pending: {Math.floor(Math.random() * 10) + 1}</small>}
+                                            </div>
+                                            {c.targetEmployee && (
+                                                <div className="mt-2 p-2 bg-light rounded border border-danger border-opacity-25">
+                                                    <small className="text-danger fw-bold">Against: {c.targetEmployee.name} ({c.targetEmployee.dept})</small>
+                                                </div>
+                                            )}
                                         </div>
-                                        <p className="text-muted mb-2">{c.description}</p>
-                                        <div className="d-flex gap-3">
-                                            <small className="text-muted">By: {c.submittedBy}</small>
-                                            {c.status === "pending" && <small className="text-danger fw-bold">Days Pending: {Math.floor(Math.random() * 10) + 1}</small>}
-                                        </div>
+                                        {role === "admin" && c.status === "pending" && (
+                                            <button className="btn btn-sm btn-success" onClick={() => handleResolve(c.id)}>
+                                                Mark Resolved
+                                            </button>
+                                        )}
                                     </div>
-                                    {role === "admin" && c.status === "pending" && (
-                                        <button className="btn btn-sm btn-success" onClick={() => handleResolve(c.id)}>
-                                            Mark Resolved
-                                        </button>
-                                    )}
                                 </div>
-                            </div>
-                        ))}
+                            ))}
                     </div>
                 )}
             </div>
