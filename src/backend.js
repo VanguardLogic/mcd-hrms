@@ -452,3 +452,106 @@ export async function getApplications(jobId = null) {
         return [];
     }
 }
+
+// --- Leave Management System ---
+
+// 1. Manage Leave Types (Admin)
+export async function addLeaveType(data) {
+    try {
+        await addDoc(collection(db, "leave_types"), {
+            ...data,
+            createdAt: serverTimestamp()
+        });
+        return { success: true };
+    } catch (error) {
+        console.error("Error adding leave type:", error);
+        return { success: false, error };
+    }
+}
+
+export async function getLeaveTypes() {
+    try {
+        const q = query(collection(db, "leave_types"), orderBy("createdAt", "desc"));
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+        console.error("Error fetching leave types:", error);
+        return [];
+    }
+}
+
+export async function deleteLeaveType(id) {
+    try {
+        await deleteDoc(doc(db, "leave_types", id));
+        return { success: true };
+    } catch (error) {
+        console.error("Error deleting leave type:", error);
+        return { success: false, error };
+    }
+}
+
+// 2. Leave Requests (Employee & Admin)
+
+// Submit a new leave request
+export async function applyForLeave(data) {
+    try {
+        await addDoc(collection(db, "leave_requests"), {
+            ...data,
+            status: "Pending", // Pending, Approved, Rejected
+            appliedAt: serverTimestamp()
+        });
+        return { success: true };
+    } catch (error) {
+        console.error("Error applying for leave:", error);
+        return { success: false, error };
+    }
+}
+
+// Get all requests (For Admin)
+export async function getAllLeaveRequests() {
+    try {
+        const q = query(collection(db, "leave_requests"), orderBy("appliedAt", "desc"));
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+        console.error("Error fetching all leave requests:", error);
+        return [];
+    }
+}
+
+// Get requests for a specific employee
+export async function getMyLeaveRequests(email) {
+    try {
+        const q = query(
+            collection(db, "leave_requests"),
+            where("email", "==", email)
+        );
+        const snapshot = await getDocs(q);
+        // Client-side sort if composite index is missing for email + appliedAt
+        return snapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .sort((a, b) => {
+                const dateA = a.appliedAt?.toMillis() || 0;
+                const dateB = b.appliedAt?.toMillis() || 0;
+                return dateB - dateA;
+            });
+    } catch (error) {
+        console.error("Error fetching employee leave requests:", error);
+        return [];
+    }
+}
+
+// Update request status (Approve/Reject)
+export async function updateLeaveStatus(id, status, comment = "") {
+    try {
+        await updateDoc(doc(db, "leave_requests", id), {
+            status: status,
+            adminComment: comment,
+            updatedAt: serverTimestamp()
+        });
+        return { success: true };
+    } catch (error) {
+        console.error("Error updating leave request:", error);
+        return { success: false, error };
+    }
+}

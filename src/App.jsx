@@ -20,6 +20,12 @@ import JobPostings from "./pages/Recruitment/JobPostings";
 import Applications from "./pages/Recruitment/Applications";
 import Careers from "./pages/Recruitment/Careers";
 
+// Leave Management
+import LeaveTypes from "./pages/LeaveTypes";
+import LeavesAdmin from "./pages/LeavesAdmin";
+import ApplyLeave from "./pages/ApplyLeave";
+import MyLeaves from "./pages/MyLeaves";
+
 const THEME = {
   primary: "#1a237e",
   secondary: "#ff9933",
@@ -128,9 +134,32 @@ function App() {
       icon: "💬",
       children: [
         { id: "transfers", label: role === "admin" ? "Transfers" : "Transfer Request", icon: "📋" },
-        { id: "grievances", label: role === "admin" ? "Grievances" : "Submit Complaint", icon: "⚠️" } // Changed icon
+        { id: "grievances", label: role === "admin" ? "Grievances" : "Submit Complaint", icon: "⚠️" }
       ]
     });
+
+    // Group 4: Leave Management
+    if (role === "admin") {
+      tabs.push({
+        id: "leaves",
+        label: "Leaves",
+        icon: "🏖️",
+        children: [
+          { id: "leaves_admin", label: "Manage Requests", icon: "✅" },
+          { id: "leave_types", label: "Leave Config", icon: "⚙️" }
+        ]
+      });
+    } else {
+      tabs.push({
+        id: "leaves",
+        label: "Leaves",
+        icon: "🏖️",
+        children: [
+          { id: "apply_leave", label: "Apply for Leave", icon: "✍️" },
+          { id: "my_leaves", label: "My History", icon: "📅" }
+        ]
+      });
+    }
 
     if (role === "admin") {
       tabs.push({ id: "settings", label: "Settings", icon: "⚙️" });
@@ -157,6 +186,11 @@ function App() {
       case "settings": return <Settings />;
       case "jobs": return <JobPostings />;
       case "applications": return <Applications />;
+      // Leave Management
+      case "leaves_admin": return <LeavesAdmin />;
+      case "leave_types": return <LeaveTypes />;
+      case "apply_leave": return <ApplyLeave setTab={setActiveTab} />;
+      case "my_leaves": return <MyLeaves />;
       default: return <Dashboard role={role} user={user} setTab={setActiveTab} />;
     }
   }
