@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
     assignTask,
     getAllTasks,
@@ -28,7 +28,7 @@ const Tasks = ({ user, role }) => {
         dueDate: ''
     });
 
-    const isAdmin = role === 'admin' || user?.email === 'admin@mcd.com';
+    const isAdmin = role === 'admin' || user?.email === 'admin@mcd.in';
 
     // --- NEW: Calculate Stats based on the loaded 'tasks' ---
     const totalTasks = tasks.length;
@@ -342,7 +342,7 @@ const Tasks = ({ user, role }) => {
                                         {task.employeeNotes && (
                                             <div className="mb-3 ps-3 border-start border-3 border-info">
                                                 <small className="text-muted d-block">Your Note:</small>
-                                                <span className="text-dark fst-italic">"{task.employeeNotes}"</span>
+                                                <span className="text-dark fst-italic">&ldquo;{task.employeeNotes}&rdquo;</span>
                                             </div>
                                         )}
 

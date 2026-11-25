@@ -8,27 +8,30 @@ export default function Applications() {
     const [filterJobId, setFilterJobId] = useState("");
 
     useEffect(() => {
+        let active = true;
+        async function loadData() {
+            setLoading(true);
+            const [jobData, appData] = await Promise.all([
+                getJobPostings(true),
+                getApplications(filterJobId || null)
+            ]);
+
+            if (!active) return;
+            setJobs(jobData);
+
+            const enhancedApps = appData.map(app => {
+                const job = jobData.find(j => j.id === app.jobId);
+                return { ...app, jobTitle: job ? job.title : (app.jobTitle || "Unknown Job") };
+            });
+
+            setApplications(enhancedApps);
+            setLoading(false);
+        }
         loadData();
+        return () => {
+            active = false;
+        };
     }, [filterJobId]);
-
-    async function loadData() {
-        setLoading(true);
-        // Load jobs for filter dropdown
-        const jobData = await getJobPostings(true);
-        setJobs(jobData);
-
-        // Load applications
-        const appData = await getApplications(filterJobId || null);
-
-        // Enhance applications with job titles
-        const enhancedApps = appData.map(app => {
-            const job = jobData.find(j => j.id === app.jobId);
-            return { ...app, jobTitle: job ? job.title : "Unknown Job" };
-        });
-
-        setApplications(enhancedApps);
-        setLoading(false);
-    }
 
     return (
         <div className="container-fluid">

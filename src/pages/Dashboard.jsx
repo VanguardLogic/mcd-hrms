@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { showStaff, getAttendanceForEmployee, getMyPayroll, getMyProfile } from "../backend";
-import { seedDatabase } from "../utils/SeedData";
 
 const THEME = {
     primary: "#1a237e",
@@ -40,23 +39,27 @@ function Dashboard({ role, user, setTab }) {
     }, [role]);
 
     useEffect(() => {
-        if (user) {
-            // Load personal data for EVERYONE (Admin needs it for "My Personal Record", Employee needs it for dashboard)
-            loadMyData();
-        }
-    }, [user]);
+        if (!user?.email) return;
 
-    async function loadMyData() {
-        // Parallel fetch for better performance
-        const [attData, payData, profileData] = await Promise.all([
-            getAttendanceForEmployee(user.email),
-            getMyPayroll(user.email),
-            getMyProfile(user.email)
-        ]);
-        setMyAttendance(attData);
-        setMySalary(payData);
-        setMyProfile(profileData);
-    }
+        let active = true;
+        async function loadMyData() {
+            const [attData, payData, profileData] = await Promise.all([
+                getAttendanceForEmployee(user.email),
+                getMyPayroll(user.email),
+                getMyProfile(user.email)
+            ]);
+            if (active) {
+                setMyAttendance(attData);
+                setMySalary(payData);
+                setMyProfile(profileData);
+            }
+        }
+        loadMyData();
+
+        return () => {
+            active = false;
+        };
+    }, [user]);
 
     // Admin & HR Dashboard - Premium Redesign
     if (role === "admin" || role === "hr") {
@@ -330,7 +333,7 @@ function Dashboard({ role, user, setTab }) {
 
                 {/* PILOT DISCLAIMER - User Request */}
                 <div className="text-center pb-4 opacity-50 small fst-italic mt-5">
-                    "Prototype demonstrated for pilot-level evaluation. Designed for phased integration with existing government systems."
+                    &ldquo;Prototype demonstrated for pilot-level evaluation. Designed for phased integration with existing government systems.&rdquo;
                 </div>
             </div>
         );

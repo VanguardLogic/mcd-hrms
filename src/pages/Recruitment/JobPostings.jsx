@@ -132,7 +132,7 @@ export default function JobPostings() {
             ) : jobs.length === 0 ? (
                 <div className="text-center text-muted py-5">
                     <h4>No Active Job Postings</h4>
-                    <p>Click "Post New Job" to start recruiting.</p>
+                    <p>Click &ldquo;Post New Job&rdquo; to start recruiting.</p>
                 </div>
             ) : (
                 <div className="row">

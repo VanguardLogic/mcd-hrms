@@ -1,5 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getAllLeaveRequests, updateLeaveStatus } from '../backend';
+
+const formatFirestoreDate = (val, includeTime = false) => {
+    if (!val) return '—';
+    const d = val.seconds ? new Date(val.seconds * 1000) : new Date(val);
+    return includeTime ? d.toLocaleString() : d.toLocaleDateString();
+};
 
 const LeavesAdmin = () => {
     const [requests, setRequests] = useState([]);
@@ -59,7 +65,7 @@ const LeavesAdmin = () => {
 
             {loading ? <p>Loading requests...</p> : (
                 <div className="table-responsive">
-                    <table className="table table-bordered hover">
+                    <table className="table table-bordered table-hover">
                         <thead className="table-light">
                             <tr>
                                 <th>Employee</th>
@@ -80,11 +86,11 @@ const LeavesAdmin = () => {
                                     </td>
                                     <td>{req.leaveType}</td>
                                     <td>
-                                        {new Date(req.startDate.seconds * 1000).toLocaleDateString()} to <br />
-                                        {new Date(req.endDate.seconds * 1000).toLocaleDateString()}
+                                        {formatFirestoreDate(req.startDate)} to <br />
+                                        {formatFirestoreDate(req.endDate)}
                                     </td>
                                     <td>{req.reason}</td>
-                                    <td>{new Date(req.appliedAt.seconds * 1000).toLocaleString()}</td>
+                                    <td>{formatFirestoreDate(req.appliedAt, true)}</td>
                                     <td>
                                         <span className={`badge ${getStatusBadge(req.status)}`}>{req.status}</span>
                                         {req.adminComment && <div className="small text-muted mt-1">Note: {req.adminComment}</div>}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { addLeaveType, getLeaveTypes, deleteLeaveType } from '../backend';
 
 const LeaveTypes = () => {

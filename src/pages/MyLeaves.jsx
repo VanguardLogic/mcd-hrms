@@ -1,6 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getMyLeaveRequests } from '../backend';
 import { auth } from '../firebase';
+
+const formatFirestoreDate = (val) => {
+    if (!val) return '—';
+    const d = val.seconds ? new Date(val.seconds * 1000) : new Date(val);
+    return d.toLocaleDateString();
+};
 
 const MyLeaves = () => {
     const [leaves, setLeaves] = useState([]);
@@ -32,7 +38,7 @@ const MyLeaves = () => {
             <h2 className="mb-4">My Leave History</h2>
 
             {leaves.length === 0 ? (
-                <div className="alert alert-info">You haven't applied for any leaves yet.</div>
+                <div className="alert alert-info">You haven&apos;t applied for any leaves yet.</div>
             ) : (
                 <div className="row">
                     {leaves.map(leave => (
@@ -44,12 +50,12 @@ const MyLeaves = () => {
                                         <span className={`badge bg-light ${getStatusColor(leave.status)} border`}>{leave.status}</span>
                                     </div>
                                     <p className="card-text text-muted small mb-3">
-                                        Applied on: {new Date(leave.appliedAt?.seconds * 1000).toLocaleDateString()}
+                                        Applied on: {formatFirestoreDate(leave.appliedAt)}
                                     </p>
 
                                     <div className="mb-2">
                                         <strong>Duration:</strong><br />
-                                        {new Date(leave.startDate.seconds * 1000).toLocaleDateString()} - {new Date(leave.endDate.seconds * 1000).toLocaleDateString()}
+                                        {formatFirestoreDate(leave.startDate)} - {formatFirestoreDate(leave.endDate)}
                                     </div>
 
                                     <div className="mb-2">

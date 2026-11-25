@@ -1,0 +1,66 @@
+name: Automated Maintenance
+
+on:
+  schedule:
+    # Runs every Monday at 03:30 UTC (09:00 IST)
+    - cron: "30 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  health-and-security-check:
+    name: Weekly Build & Dependency Health
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Clean install
+        run: npm ci
+
+      - name: Verify lint & production build
+        run: npm run check
+
+      - name: Generate dependency & security report
+        run: |
+          {
+            echo "## 📦 Weekly Maintenance Summary"
+            echo ""
+            echo "### 🔒 Production Security Audit"
+            echo '```'
+            npm audit --omit=dev || true
+            echo '```'
+            echo ""
+            echo "### ⬆️ Outdated Packages"
+            echo '```'
+            npm outdated || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  stale-cleanup:
+    name: Stale Issues & PRs Cleanup
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Mark and close stale issues and PRs
+        uses: actions/stale@v9
+        with:
+          days-before-stale: 45
+          days-before-close: 14
+          stale-issue-label: "stale"
+          stale-pr-label: "stale"
+          stale-issue-message: "This issue has been automatically marked as stale due to 45 days of inactivity. It will be closed in 14 days if no further activity occurs."
+          stale-pr-message: "This pull request has been automatically marked as stale due to 45 days of inactivity. It will be closed in 14 days if no further activity occurs."
+          exempt-issue-labels: "pinned,security,bug,keep-open"
+          exempt-pr-labels: "pinned,security,keep-open"
+          operations-per-run: 30

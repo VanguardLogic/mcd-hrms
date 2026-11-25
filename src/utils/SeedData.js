@@ -126,8 +126,8 @@ export const seedDatabase = async () => {
                 // Randomize attendance
                 const rand = Math.random();
                 let status = "present";
-                if (rand > 0.85) status = "absent";
-                else if (rand > 0.95) status = "leave";
+                if (rand > 0.95) status = "leave";
+                else if (rand > 0.85) status = "absent";
 
                 const attRef = doc(db, "attendance", `${dateStr}_${emp.id}`);
                 batch.set(attRef, {

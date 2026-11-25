@@ -21,25 +21,15 @@ function Attendance({ role, user }) {
 
     useEffect(() => {
         if (role === "admin" || role === "hr") {
-            loadAttendance();
+            getAttendanceForDate(date).then(setAttendance);
         }
     }, [date, role]);
 
     useEffect(() => {
-        if (role === "employee" && user) {
-            loadMyHistory();
+        if (role === "employee" && user?.email) {
+            getMyAttendanceHistory(user.email).then(setMyHistory);
         }
     }, [role, user]);
-
-    async function loadAttendance() {
-        const data = await getAttendanceForDate(date);
-        setAttendance(data);
-    }
-
-    async function loadMyHistory() {
-        const data = await getMyAttendanceHistory(user.email);
-        setMyHistory(data);
-    }
 
     async function handleMark(empId, status) {
         if (role !== "admin" && role !== "hr") return;
@@ -168,7 +158,7 @@ function Attendance({ role, user }) {
                     <tbody>
                         {employees.length === 0 ? (
                             <tr>
-                                <td colSpan="4" className="text-center py-5 text-muted">
+                                <td colSpan="6" className="text-center py-5 text-muted">
                                     No employees found.
                                 </td>
                             </tr>

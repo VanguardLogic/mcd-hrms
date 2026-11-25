@@ -122,7 +122,7 @@ function Performance({ role, user }) {
                     {rData.comment ? (
                         <div className="bg-light rounded-3 p-3 mb-3 position-relative">
                             <div className="position-absolute top-0 start-0 ms-2 mt-n2 bg-white px-1 text-muted small" style={{ lineHeight: 1 }}>💬</div>
-                            <p className="small text-muted mb-0 fst-italic">"{rData.comment}"</p>
+                            <p className="small text-muted mb-0 fst-italic">&ldquo;{rData.comment}&rdquo;</p>
                         </div>
                     ) : (
                         <div className="mb-3 pb-4"></div>

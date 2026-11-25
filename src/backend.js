@@ -178,12 +178,14 @@ export async function makeFakeData(adminEmail, adminPassword) {
     let created = 0, skipped = 0, errors = [];
     try {
         for (const emp of demoEmployees) {
-            let employeeDocId = null;
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, emp.email, DEMO_PASSWORD);
                 await setDoc(doc(db, "users", userCredential.user.uid), { email: emp.email, role: "employee", name: emp.name, createdAt: serverTimestamp() });
                 const empRef = await addDoc(collection(db, "employees"), { name: emp.name, dept: emp.dept, empId: emp.empId, post: emp.post, email: emp.email, uid: userCredential.user.uid, time: serverTimestamp() });
-                employeeDocId = empRef.id;
+                const pay = demoPayroll[emp.email];
+                if (pay) {
+                    await updatePayroll(empRef.id, pay.basic, pay.da, pay.hra);
+                }
                 created++;
                 await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
             } catch (error) {
@@ -195,7 +197,13 @@ export async function makeFakeData(adminEmail, adminPassword) {
             }
         }
     } catch (e) { console.error("Fatal error:", e); errors.push("Fatal: " + e.message); }
-    try { if (auth.currentUser?.email !== adminEmail) await signInWithEmailAndPassword(auth, adminEmail, adminPassword); } catch (e) { }
+    try {
+        if (auth.currentUser?.email !== adminEmail) {
+            await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
+        }
+    } catch (reauthErr) {
+        console.error("Failed to restore admin session:", reauthErr);
+    }
     return { created, skipped, errors };
 }
 

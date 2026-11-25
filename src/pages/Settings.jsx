@@ -45,8 +45,8 @@ function Settings() {
     }
 
     const filteredList = staffList.filter(s =>
-        s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.email.toLowerCase().includes(searchTerm.toLowerCase())
+        (s.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (s.email || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (

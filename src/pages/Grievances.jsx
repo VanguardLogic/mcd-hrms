@@ -182,7 +182,11 @@ function Grievances({ role, user }) {
                                             <p className="text-muted mb-2">{c.description}</p>
                                             <div className="d-flex gap-3">
                                                 <small className="text-muted">By: {c.submittedBy}</small>
-                                                {c.status === "pending" && <small className="text-danger fw-bold">Days Pending: {Math.floor(Math.random() * 10) + 1}</small>}
+                                                {c.status === "pending" && (
+                                                    <small className="text-danger fw-bold">
+                                                        Days Pending: {c.submittedAt?.seconds ? Math.max(1, Math.ceil((Date.now() - c.submittedAt.seconds * 1000) / 86400000)) : 1}
+                                                    </small>
+                                                )}
                                             </div>
                                             {c.targetEmployee && (
                                                 <div className="mt-2 p-2 bg-light rounded border border-danger border-opacity-25">

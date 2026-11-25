@@ -6,15 +6,20 @@ function Transfers({ role, user }) {
     const [transfers, setTransfers] = useState([]);
     const [showForm, setShowForm] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [selectedEmpId, setSelectedEmpId] = useState("");
 
     useEffect(() => {
         const unsubscribe = showStaff((list) => {
             setEmployees(list);
+            if (role === "employee" && user?.email) {
+                const self = list.find((e) => e.email === user.email);
+                if (self) setSelectedEmpId(self.id);
+            }
         });
         return () => {
             if (typeof unsubscribe === "function") unsubscribe();
         };
-    }, []);
+    }, [role, user]);
 
     useEffect(() => {
         loadTransfers();
@@ -28,16 +33,17 @@ function Transfers({ role, user }) {
     async function handleRequest(e) {
         e.preventDefault();
         setLoading(true);
-        const empId = e.target.empId.value;
+        const empId = selectedEmpId;
         const toDept = e.target.toDept.value.trim();
         const reason = e.target.reason.value.trim();
 
-        const emp = employees.find((e) => e.id === empId);
+        const emp = employees.find((item) => item.id === empId);
 
         try {
             await requestTransfer(empId, emp?.name, emp?.dept, toDept, reason, user?.email);
             alert("Transfer request submitted!");
             e.target.reset();
+            if (role !== "employee") setSelectedEmpId("");
             setShowForm(false);
             loadTransfers();
         } catch (error) {
@@ -87,7 +93,8 @@ function Transfers({ role, user }) {
                                     className="form-select rounded-3 border-0 bg-white shadow-sm"
                                     name="empId"
                                     required
-                                    defaultValue={role === "employee" ? employees.find(e => e.email === user?.email)?.id : ""}
+                                    value={selectedEmpId}
+                                    onChange={(e) => setSelectedEmpId(e.target.value)}
                                     disabled={role === "employee"}
                                 >
                                     <option value="">Choose...</option>
@@ -131,7 +138,7 @@ function Transfers({ role, user }) {
                     <tbody>
                         {transfers.length === 0 ? (
                             <tr>
-                                <td colSpan="6" className="text-center py-5 text-muted">
+                                <td colSpan={role === "admin" ? "6" : "5"} className="text-center py-5 text-muted">
                                     No transfer requests.
                                 </td>
                             </tr>
